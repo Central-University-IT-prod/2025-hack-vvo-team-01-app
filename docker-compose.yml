@@ -1,0 +1,63 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - backend.env
+    depends_on:
+      - db
+      - redis
+
+  # frontend:
+  #   build:
+  #     context: ./miniapp
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - frontend.env
+  #   depends_on:
+  #     - backend
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "8032:5432"
+    environment:
+      - POSTGRES_USER=prod_user
+      - POSTGRES_PASSWORD=prod_password
+      - POSTGRES_DB=prod_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    ports:
+      - "8081:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    ports:
+      - "8082:9090"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus-1.yaml
+
+volumes:
+  postgres_data:
+  grafana_data:
+  redis_data:
